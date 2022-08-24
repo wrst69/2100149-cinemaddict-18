@@ -4,6 +4,7 @@ import FilmBoardView from '../view/films-board-view.js';
 import FilmListView from '../view/films-list-view.js';
 import FilmCardView from '../view/film-card-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
+import PopupView from '../view/popup-view.js';
 import { render } from '../render.js';
 
 export default class MainPresenter {
@@ -23,8 +24,39 @@ export default class MainPresenter {
     render(this.#filmBoard, container);
     render(this.#filmsContainer, this.#filmBoard.element);
     for (let i = 0; i < this.#filmsList.length; i++) {
-      render(new FilmCardView(this.#filmsList[i]), this.#filmsContainer.element.lastElementChild);
+      this.#renderFilm(this.#filmsList[i]);
     }
     render(new ShowMoreButtonView(), this.#filmBoard.element.lastElementChild);
+  };
+
+  #renderFilm = (film) => {
+    const filmComponent = new FilmCardView(film);
+
+    filmComponent.element.addEventListener('click', () => {
+      const popupComponent = new PopupView(film);
+
+      const removePopup = () => {
+        document.querySelector('body').removeChild(popupComponent.element);
+      };
+
+      const onEscKeyDown = (evt) => {
+        if (evt.key === 'Escape' || evt.key === 'Esc') {
+          evt.preventDefault();
+          removePopup();
+          document.removeEventListener('keydown', onEscKeyDown);
+        }
+      };
+
+      document.addEventListener('keydown', onEscKeyDown);
+
+      popupComponent.element.querySelector('.film-details__close-btn').addEventListener('click', () => {
+        removePopup();
+        document.removeEventListener('keydown', onEscKeyDown);
+      });
+
+      document.body.appendChild(popupComponent.element);
+    });
+
+    render(filmComponent, this.#filmsContainer.element.lastElementChild);
   };
 }
