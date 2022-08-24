@@ -36,7 +36,8 @@ export default class MainPresenter {
       const popupComponent = new PopupView(film);
 
       const removePopup = () => {
-        document.querySelector('body').removeChild(popupComponent.element);
+        document.body.removeChild(popupComponent.element);
+        document.body.classList.remove('hide-overflow');
       };
 
       const onEscKeyDown = (evt) => {
@@ -54,6 +55,7 @@ export default class MainPresenter {
         document.removeEventListener('keydown', onEscKeyDown);
       });
 
+      document.body.classList.add('hide-overflow');
       document.body.appendChild(popupComponent.element);
     });
 
