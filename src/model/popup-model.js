@@ -1,7 +1,9 @@
 import { generateFilm } from '../mock/film.js';
 
 export default class PopupModel {
-  film = generateFilm();
+  #film = generateFilm();
 
-  getFilm = () => this.film;
+  get film() {
+    return this.#film;
+  }
 }
