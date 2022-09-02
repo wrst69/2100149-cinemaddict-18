@@ -6,7 +6,7 @@ import FilmCardView from '../view/film-card-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
 import PopupView from '../view/popup-view.js';
 import NoFilmsView from '../view/no-film-view.js';
-import { render } from '../render.js';
+import { render, remove } from '../framework/render.js';
 
 const FILMS_COUNT_PER_STEP = 5;
 
@@ -37,20 +37,21 @@ export default class MainPresenter {
 
       this.#filmsContainer = this.#filmsContainer.element.lastElementChild;
 
-      for (let i = 0; i < Math.min(this.#filmsList.length, FILMS_COUNT_PER_STEP); i++) {
-        this.#renderFilm(this.#filmsList[i]);
-      }
+      this.#filmsList
+        .slice(0, FILMS_COUNT_PER_STEP)
+        .forEach((item) => {
+          this.#renderFilm(item);
+        });
 
       if (this.#filmsList.length > FILMS_COUNT_PER_STEP) {
         render(this.#showMoreButtonComponent, this.#filmBoard.element.lastElementChild);
 
-        this.#showMoreButtonComponent.element.addEventListener('click', this.#handleShowMoreButtonClick);
+        this.#showMoreButtonComponent.setClickHandler(this.#handleShowMoreButtonClick);
       }
     }
   };
 
-  #handleShowMoreButtonClick = (evt) => {
-    evt.preventDefault();
+  #handleShowMoreButtonClick = () => {
     this.#filmsList
       .slice(this.#renderedFilmsCount, this.#renderedFilmsCount + FILMS_COUNT_PER_STEP)
       .forEach((film) => this.#renderFilm(film));
@@ -58,15 +59,14 @@ export default class MainPresenter {
     this.#renderedFilmsCount += FILMS_COUNT_PER_STEP;
 
     if (this.#renderedFilmsCount >= this.#filmsList.length) {
-      this.#showMoreButtonComponent.element.remove();
-      this.#showMoreButtonComponent.removeElement();
+      remove(this.#showMoreButtonComponent);
     }
   };
 
   #renderFilm = (film) => {
     const filmComponent = new FilmCardView(film);
 
-    filmComponent.element.addEventListener('click', () => {
+    const onFilmCardClickHandler = () => {
       const popupComponent = new PopupView(film);
 
       const removePopup = () => {
@@ -84,14 +84,18 @@ export default class MainPresenter {
 
       document.addEventListener('keydown', onEscKeyDown);
 
-      popupComponent.element.querySelector('.film-details__close-btn').addEventListener('click', () => {
+      const onPopupCloseButtonClickHandler = () => {
         removePopup();
         document.removeEventListener('keydown', onEscKeyDown);
-      });
+      };
+
+      popupComponent.setCloseButtonClickHandler(onPopupCloseButtonClickHandler);
 
       document.body.classList.add('hide-overflow');
       document.body.appendChild(popupComponent.element);
-    });
+    };
+
     render(filmComponent, this.#filmsContainer);
+    filmComponent.setClickHandler(onFilmCardClickHandler);
   };
 }
