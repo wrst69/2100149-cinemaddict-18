@@ -1,7 +1,7 @@
 import UserRankView from './view/user-rank-view.js';
 import MainPresenter from './presenter/presenter.js';
 import FooterStatisticView from './view/footer-statistic-view.js';
-import { render } from './render.js';
+import { render } from './framework/render.js';
 import FilmsModel from './model/films-model.js';
 
 const headerElement = document.querySelector('header');
