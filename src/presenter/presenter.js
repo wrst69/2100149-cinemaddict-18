@@ -6,6 +6,7 @@ import FilmCardView from '../view/film-card-view.js';
 import ShowMoreButtonView from '../view/show-more-button-view.js';
 import PopupView from '../view/popup-view.js';
 import NoFilmsView from '../view/no-film-view.js';
+import { generateFilteredFilms } from '../mock/filter.js';
 import { render, remove } from '../framework/render.js';
 
 const FILMS_COUNT_PER_STEP = 5;
@@ -24,7 +25,9 @@ export default class MainPresenter {
     this.#filmsModel = filmsModel;
     this.#filmsList = [...this.#filmsModel.films];
 
-    render(new NavigationView(), container);
+    const filteredFilms = generateFilteredFilms(this.#filmsList);
+
+    render(new NavigationView(filteredFilms), container);
     render(new FilterView(), container);
     render(this.#filmBoard, container);
 
