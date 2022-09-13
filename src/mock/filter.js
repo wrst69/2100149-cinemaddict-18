@@ -13,7 +13,7 @@ export const generateFilteredFilms = (films) => {
     if (userDetails.alreadyWatched) {
       filteredFilms.history.push(item);
     }
-    if (userDetails.favorites) {
+    if (userDetails.favorite) {
       filteredFilms.favorites.push(item);
     }
   });

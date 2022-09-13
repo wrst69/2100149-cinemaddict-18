@@ -1,4 +1,5 @@
 import { getRandomInteger } from '../utils.js';
+import { nanoid } from 'nanoid';
 
 const titles = [
   'Made For Each Other',
@@ -31,7 +32,7 @@ const getRandomValue = (items) => {
 };
 
 export const generateFilm = () => ({
-  id: '0',
+  id: nanoid(),
   comments: ['1', '2'],
   filmInfo: {
     title: getRandomValue(titles),

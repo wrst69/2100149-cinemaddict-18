@@ -8,9 +8,9 @@ const headerElement = document.querySelector('header');
 const mainElement = document.querySelector('main');
 const footerStatisticElement = document.querySelector('.footer__statistics');
 
-const mainPresenter = new MainPresenter();
+const mainPresenter = new MainPresenter(mainElement);
 const filmsModel = new FilmsModel();
 
 render(new UserRankView(), headerElement);
-mainPresenter.init(mainElement, filmsModel);
+mainPresenter.init(filmsModel);
 render(new FooterStatisticView(), footerStatisticElement);
