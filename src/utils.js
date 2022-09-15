@@ -36,4 +36,36 @@ const updateItem = (items, update) => {
   ];
 };
 
-export { getRandomInteger, humanizeDate, humanizeFilmRuntime, updateItem};
+const getWeightForNullDate = (dateA, dateB) => {
+  if (dateA === null && dateB === null) {
+    return 0;
+  }
+
+  if (dateA === null) {
+    return 1;
+  }
+
+  if (dateB === null) {
+    return -1;
+  }
+
+  return null;
+};
+
+const sortByDate = (filmA, filmB) => {
+  const weight = getWeightForNullDate(filmA.filmInfo.release.date, filmB.filmInfo.release.date);
+
+  return weight ?? dayjs(filmB.filmInfo.release.date).diff(dayjs(filmA.filmInfo.release.date));
+};
+
+const sortByRating = (filmA, filmB) => {
+  if (filmA.filmInfo.totalRating > filmB.filmInfo.totalRating) {
+    return 1;
+  } else if (filmA.filmInfo.totalRating < filmB.filmInfo.totalRating) {
+    return - 1;
+  } else {
+    return 0;
+  }
+};
+
+export { getRandomInteger, humanizeDate, humanizeFilmRuntime, updateItem, sortByDate, sortByRating};

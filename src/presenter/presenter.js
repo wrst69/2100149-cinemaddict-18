@@ -1,6 +1,7 @@
 import { generateFilteredFilms } from '../mock/filter.js';
 import { RenderPosition, render, remove} from '../framework/render.js';
-import { updateItem } from '../utils.js';
+import { updateItem, sortByDate, sortByRating} from '../utils.js';
+import { SortType } from '../const.js';
 import NavigationView from '../view/navigation-view.js';
 import FilterView from '../view/filter-view.js';
 import FilmBoardView from '../view/films-board-view.js';
@@ -15,8 +16,11 @@ export default class MainPresenter {
   #container = null;
   #filmBoard = new FilmBoardView();
   #filmsContainer = null;
-  #filmsNavigation = null;
   #filmsList = null;
+  #filmsNavigation = null;
+  #sortComponent = new FilterView();
+  #currentSortType = SortType.DEFAULT;
+  #sourcedFilmsList = [];
   #showMoreButtonComponent = new ShowMoreButtonView();
   #renderedFilmsCount = FILMS_COUNT_PER_STEP;
   #filmPresenter = new Map();
@@ -27,6 +31,7 @@ export default class MainPresenter {
 
   init = (filmsModel) => {
     this.#filmsList = [...filmsModel.films];
+    this.#sourcedFilmsList = [...filmsModel.films];
     this.#renderFilmBoard();
     this.#renderFilmsContainer();
     this.#renderNavigation();
@@ -42,8 +47,34 @@ export default class MainPresenter {
 
   #handleFilmChange = (updatedFilm) => {
     this.#filmsList = updateItem(this.#filmsList, updatedFilm);
+    this.#sourcedFilmsList = updateItem(this.#sourcedFilmsList, updatedFilm);
     this.#filmPresenter.get(updatedFilm.id).init(updatedFilm);
     this.#renderNavigation();
+  };
+
+  #handleSortTypeChange = (sortType) => {
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+
+    this.#sortFilms(sortType);
+    this.#clearFilmsList();
+    this.#renderFilms();
+  };
+
+  #sortFilms = (sortType) => {
+    switch (sortType) {
+      case SortType.DATE:
+        this.#filmsList.sort(sortByDate);
+        break;
+      case SortType.RATING:
+        this.#filmsList.sort(sortByRating);
+        break;
+      default:
+        this.#filmsList = [...this.#sourcedFilmsList];
+    }
+
+    this.#currentSortType = sortType;
   };
 
   #renderFilmBoard = () => {
@@ -51,7 +82,8 @@ export default class MainPresenter {
   };
 
   #renderFilters = () => {
-    render(new FilterView(), this.#container, RenderPosition.AFTERBEGIN);
+    render(this.#sortComponent, this.#container, RenderPosition.AFTERBEGIN);
+    this.#sortComponent.setSortTypeChangeHandler(this.#handleSortTypeChange);
   };
 
   #renderFilmsContainer = () => {
