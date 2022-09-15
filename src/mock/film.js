@@ -37,7 +37,7 @@ export const generateFilm = () => ({
   filmInfo: {
     title: getRandomValue(titles),
     alternativeTitle: 'Laziness Who Sold Themselves',
-    totalRating: 5.3,
+    totalRating: getRandomInteger(0, 10),
     poster: `images/posters/${getRandomValue(posters)}`,
     ageRating: 0,
     director: 'Tom Ford',
