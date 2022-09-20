@@ -58,14 +58,6 @@ const sortByDate = (filmA, filmB) => {
   return weight ?? dayjs(filmB.filmInfo.release.date).diff(dayjs(filmA.filmInfo.release.date));
 };
 
-const sortByRating = (filmA, filmB) => {
-  if (filmA.filmInfo.totalRating > filmB.filmInfo.totalRating) {
-    return 1;
-  } else if (filmA.filmInfo.totalRating < filmB.filmInfo.totalRating) {
-    return - 1;
-  } else {
-    return 0;
-  }
-};
+const sortByRating = (filmA, filmB) => filmA.filmInfo.totalRating - filmB.filmInfo.totalRating;
 
 export { getRandomInteger, humanizeDate, humanizeFilmRuntime, updateItem, sortByDate, sortByRating};
