@@ -26,6 +26,9 @@ const descriptions = [
   'Sed sed nisi sed augue convallis suscipit in sed felis. Aliquam erat volutpat.'
 ];
 
+const minRank = 0;
+const maxRank = 10;
+
 const getRandomValue = (items) => {
   const randomIndex = getRandomInteger(0, items.length - 1);
   return items[randomIndex];
@@ -37,7 +40,7 @@ export const generateFilm = () => ({
   filmInfo: {
     title: getRandomValue(titles),
     alternativeTitle: 'Laziness Who Sold Themselves',
-    totalRating: getRandomInteger(0, 10),
+    totalRating: getRandomInteger(minRank, maxRank),
     poster: `images/posters/${getRandomValue(posters)}`,
     ageRating: 0,
     director: 'Tom Ford',
