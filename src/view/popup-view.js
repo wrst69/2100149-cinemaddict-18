@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { humanizeDate, humanizeFilmRuntime } from '../utils.js';
 import { allComments } from '../mock/comment.js';
@@ -21,6 +22,26 @@ const createPopup = (film) => {
   };
 
   const generateCommentsTemplate = (items) => {
+    const getCommentDate = (commentDate) => {
+      const currentDate = dayjs();
+      const minuteDifference = currentDate.diff(commentDate, 'minute');
+      const hourDifference = currentDate.diff(commentDate, 'hour');
+      if (minuteDifference === 0) {
+        return 'now';
+      }
+      else if (minuteDifference < 0) {
+        return '';
+      } else if (minuteDifference > 0 && minuteDifference < 60) {
+        return 'a few minutes ago';
+      } else if (hourDifference > 0 && hourDifference < 24) {
+        return (hourDifference === 1) ? 'a hour ago' : `${hourDifference} hours ago`;
+      } else if (hourDifference >= 24 && hourDifference < 48) {
+        return 'yesterday';
+      } else {
+        return humanizeDate(commentDate, 'YYYY/MM/DD HH:MM');
+      }
+    };
+
     let commentsTemplate = '';
 
     items.forEach((item) => {
@@ -33,7 +54,7 @@ const createPopup = (film) => {
           <p class="film-details__comment-text">${item.comment}</p>
           <p class="film-details__comment-info">
             <span class="film-details__comment-author">${item.author}</span>
-            <span class="film-details__comment-day">${humanizeDate(item.date, 'YYYY/MM/DD HH:MM')}</span>
+            <span class="film-details__comment-day">${getCommentDate(item.date)}</span>
             <button class="film-details__comment-delete">Delete</button>
           </p>
         </div>
@@ -41,6 +62,21 @@ const createPopup = (film) => {
     });
 
     return commentsTemplate;
+  };
+
+  const generateEmojiButtons = () => {
+    const emojis = ['smile', 'sleeping', 'puke', 'angry'];
+    let emojisTemplate = '';
+
+    emojis.forEach((emoji) => {
+      emojisTemplate +=
+        `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}" ${(checkedEmoji === emoji) ? 'checked' : ''}>
+        <label class="film-details__emoji-label" for="emoji-${emoji}">
+          <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
+        </label>`;
+    });
+
+    return emojisTemplate;
   };
 
   return (
@@ -131,25 +167,7 @@ const createPopup = (film) => {
             </label>
 
             <div class="film-details__emoji-list">
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile" ${(checkedEmoji === 'smile') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-smile">
-                <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
-              </label>
-
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping" ${(checkedEmoji === 'sleeping') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-sleeping">
-                <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
-              </label>
-
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke" ${(checkedEmoji === 'puke') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-puke">
-                <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
-              </label>
-
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry" ${(checkedEmoji === 'angry') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-angry">
-                <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
-              </label>
+              ${generateEmojiButtons()}
             </div>
           </form>
         </section>
