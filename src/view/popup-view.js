@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { humanizeDate, humanizeFilmRuntime } from '../utils.js';
 import { allComments } from '../mock/comment.js';
@@ -13,40 +14,20 @@ const createPopup = (film) => {
     }
   });
 
-  const generateGenresTemplate = (items) => {
-    let genresTemplate = '';
-    items.forEach((item) => {
-      genresTemplate += `<span class="film-details__genre">${item}</span>`;
-    });
-    return genresTemplate;
-  };
+  const generateGenresTemplate = (items) =>
+    items.map((item) =>
+      `<span class="film-details__genre">${item}</span>`
+    ).join('');
 
   const generateCommentsTemplate = (items) => {
     const getCommentDate = (commentDate) => {
-      const currentDate = dayjs();
-      const minuteDifference = currentDate.diff(commentDate, 'minute');
-      const hourDifference = currentDate.diff(commentDate, 'hour');
-      if (minuteDifference === 0) {
-        return 'now';
-      }
-      else if (minuteDifference < 0) {
-        return '';
-      } else if (minuteDifference > 0 && minuteDifference < 60) {
-        return 'a few minutes ago';
-      } else if (hourDifference > 0 && hourDifference < 24) {
-        return (hourDifference === 1) ? 'a hour ago' : `${hourDifference} hours ago`;
-      } else if (hourDifference >= 24 && hourDifference < 48) {
-        return 'yesterday';
-      } else {
-        return humanizeDate(commentDate, 'YYYY/MM/DD HH:MM');
-      }
+      dayjs.extend(relativeTime);
+
+      return dayjs().from(dayjs(commentDate));
     };
 
-    let commentsTemplate = '';
-
-    items.forEach((item) => {
-      commentsTemplate +=
-        `<li class="film-details__comment">
+    return items.map((item) =>
+      `<li class="film-details__comment">
         <span class="film-details__comment-emoji">
           <img src="./images/emoji/${item.emotion}.png" width="55" height="55" alt="emoji-smile">
         </span>
@@ -58,25 +39,18 @@ const createPopup = (film) => {
             <button class="film-details__comment-delete">Delete</button>
           </p>
         </div>
-      </li>`;
-    });
-
-    return commentsTemplate;
+      </li>`).join('');
   };
 
   const generateEmojiButtons = () => {
     const emojis = ['smile', 'sleeping', 'puke', 'angry'];
-    let emojisTemplate = '';
 
-    emojis.forEach((emoji) => {
-      emojisTemplate +=
-        `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}" ${(checkedEmoji === emoji) ? 'checked' : ''}>
+    return emojis.map((emoji) =>
+      `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}" ${(checkedEmoji === emoji) ? 'checked' : ''}>
         <label class="film-details__emoji-label" for="emoji-${emoji}">
           <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
-        </label>`;
-    });
-
-    return emojisTemplate;
+        </label>`
+    ).join('');
   };
 
   return (
