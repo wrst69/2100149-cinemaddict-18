@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { humanizeDate, humanizeFilmRuntime } from '../utils.js';
 import { allComments } from '../mock/comment.js';
@@ -12,20 +14,20 @@ const createPopup = (film) => {
     }
   });
 
-  const generateGenresTemplate = (items) => {
-    let genresTemplate = '';
-    items.forEach((item) => {
-      genresTemplate += `<span class="film-details__genre">${item}</span>`;
-    });
-    return genresTemplate;
-  };
+  const generateGenresTemplate = (items) =>
+    items.map((item) =>
+      `<span class="film-details__genre">${item}</span>`
+    ).join('');
 
   const generateCommentsTemplate = (items) => {
-    let commentsTemplate = '';
+    const getCommentDate = (commentDate) => {
+      dayjs.extend(relativeTime);
 
-    items.forEach((item) => {
-      commentsTemplate +=
-        `<li class="film-details__comment">
+      return dayjs().from(dayjs(commentDate));
+    };
+
+    return items.map((item) =>
+      `<li class="film-details__comment">
         <span class="film-details__comment-emoji">
           <img src="./images/emoji/${item.emotion}.png" width="55" height="55" alt="emoji-smile">
         </span>
@@ -33,14 +35,22 @@ const createPopup = (film) => {
           <p class="film-details__comment-text">${item.comment}</p>
           <p class="film-details__comment-info">
             <span class="film-details__comment-author">${item.author}</span>
-            <span class="film-details__comment-day">${humanizeDate(item.date, 'YYYY/MM/DD HH:MM')}</span>
+            <span class="film-details__comment-day">${getCommentDate(item.date)}</span>
             <button class="film-details__comment-delete">Delete</button>
           </p>
         </div>
-      </li>`;
-    });
+      </li>`).join('');
+  };
 
-    return commentsTemplate;
+  const generateEmojiButtons = () => {
+    const emojis = ['smile', 'sleeping', 'puke', 'angry'];
+
+    return emojis.map((emoji) =>
+      `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}" ${(checkedEmoji === emoji) ? 'checked' : ''}>
+        <label class="film-details__emoji-label" for="emoji-${emoji}">
+          <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji">
+        </label>`
+    ).join('');
   };
 
   return (
@@ -131,25 +141,7 @@ const createPopup = (film) => {
             </label>
 
             <div class="film-details__emoji-list">
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile" ${(checkedEmoji === 'smile') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-smile">
-                <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
-              </label>
-
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping" ${(checkedEmoji === 'sleeping') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-sleeping">
-                <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
-              </label>
-
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke" ${(checkedEmoji === 'puke') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-puke">
-                <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
-              </label>
-
-              <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry" ${(checkedEmoji === 'angry') ? 'checked' : ''}>
-              <label class="film-details__emoji-label" for="emoji-angry">
-                <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
-              </label>
+              ${generateEmojiButtons()}
             </div>
           </form>
         </section>
