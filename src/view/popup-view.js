@@ -1,18 +1,11 @@
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { humanizeDate, humanizeFilmRuntime } from '../utils.js';
-import { allComments } from '../mock/comment.js';
 
-const createPopup = (film) => {
-  const { comments, filmInfo, checkedEmoji, userComment} = film;
-  const currentFilmComments = [];
-
-  allComments.forEach((item) => {
-    if (comments.some((comment) => comment === item.id)) {
-      currentFilmComments.push(item);
-    }
-  });
+const createPopup = (state) => {
+  const { filmInfo, userDetails, comments, checkedEmoji, userComment} = state;
 
   const generateGenresTemplate = (items) =>
     items.map((item) =>
@@ -36,7 +29,7 @@ const createPopup = (film) => {
           <p class="film-details__comment-info">
             <span class="film-details__comment-author">${item.author}</span>
             <span class="film-details__comment-day">${getCommentDate(item.date)}</span>
-            <button class="film-details__comment-delete">Delete</button>
+            <button class="film-details__comment-delete" id="${item.id}">Delete</button>
           </p>
         </div>
       </li>`).join('');
@@ -117,18 +110,18 @@ const createPopup = (film) => {
         </div>
 
         <section class="film-details__controls">
-          <button type="button" class="film-details__control-button film-details__control-button--watchlist" id="watchlist" name="watchlist">Add to watchlist</button>
-          <button type="button" class="film-details__control-button film-details__control-button--active film-details__control-button--watched" id="watched" name="watched">Already watched</button>
-          <button type="button" class="film-details__control-button film-details__control-button--favorite" id="favorite" name="favorite">Add to favorites</button>
+          <button type="button" class="film-details__control-button film-details__control-button--watchlist ${(userDetails.watchlist) ? 'film-details__control-button--active' : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
+          <button type="button" class="film-details__control-button film-details__control-button--watched ${(userDetails.alreadyWatched) ? 'film-details__control-button--active' : ''}" id="watched" name="watched">Already watched</button>
+          <button type="button" class="film-details__control-button film-details__control-button--favorite ${(userDetails.favorite) ? 'film-details__control-button--active' : ''}" id="favorite" name="favorite">Add to favorites</button>
         </section>
       </div>
 
       <div class="film-details__bottom-container">
         <section class="film-details__comments-wrap">
-          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${currentFilmComments.length}</span></h3>
+          <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${comments.length}</span></h3>
 
           <ul class="film-details__comments-list">
-            ${generateCommentsTemplate(currentFilmComments)}
+            ${generateCommentsTemplate(comments)}
           </ul>
 
           <form class="film-details__new-comment" action="" method="get">
@@ -151,9 +144,9 @@ const createPopup = (film) => {
 };
 
 export default class PopupView extends AbstractStatefulView {
-  constructor(film) {
+  constructor(film, comments) {
     super();
-    this._state = PopupView.parseFilmToState(film);
+    this._state = PopupView.parseFilmToState(film, comments);
     this.setInnerHandlers();
   }
 
@@ -167,7 +160,6 @@ export default class PopupView extends AbstractStatefulView {
     this.setFavoriteClickHandler(this._callback.favoriteClick);
     this.setCloseButtonClickHandler(this._callback.closeButtonClick);
     this.setInnerHandlers();
-
   };
 
   setWatchlistClickHandler = (callback) => {
@@ -190,9 +182,24 @@ export default class PopupView extends AbstractStatefulView {
     this.element.querySelector('.film-details__close-btn').addEventListener('click', this.#closeButtonClickHandler);
   };
 
+  setDeleteButtonClickHandler = (callback) => {
+    this._callback.deleteButtonClick = callback;
+    this.element.querySelectorAll('.film-details__comment').forEach((element) => {
+      element.addEventListener('click', this.#deleteButtonClickHandler);
+    });
+  };
+
+  setSendCommentHandler = (callback) => {
+    this._callback.sendComment = callback;
+    this.element.querySelector('form').addEventListener('submit', this.#sendCommentHandler);
+  };
+
   setInnerHandlers = () => {
     this.element.querySelectorAll('.film-details__emoji-item').forEach((element) => {
       element.addEventListener('click', this.#emojiClickHandler);
+    });
+    this.element.querySelectorAll('.film-details__comment').forEach((element) => {
+      element.addEventListener('click', this.#deleteButtonClickHandler);
     });
     this.element.querySelector('.film-details__comment-input').addEventListener('input', this.#userCommentInputHandler);
   };
@@ -200,21 +207,69 @@ export default class PopupView extends AbstractStatefulView {
   #watchlistClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.watchlistClick();
+    this.updateElement({
+      film: this._state.film,
+      scrollPosition: this.element.scrollTop
+    });
+    this.element.scroll(0, this._state.scrollPosition);
   };
 
   #historyClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.historyClick();
+    this.updateElement({
+      film: this._state.film,
+      scrollPosition: this.element.scrollTop
+    });
+    this.element.scroll(0, this._state.scrollPosition);
   };
 
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.favoriteClick();
+    this.updateElement({
+      film: this._state.film,
+      scrollPosition: this.element.scrollTop
+    });
+    this.element.scroll(0, this._state.scrollPosition);
   };
 
   #closeButtonClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.closeButtonClick();
+  };
+
+  #deleteButtonClickHandler = (evt) => {
+    if (evt.target.tagName !== 'BUTTON') {
+      return;
+    }
+
+    evt.preventDefault();
+    this._callback.deleteButtonClick(evt.target.getAttribute('id'));
+    this.updateElement({
+      comments: this._state.comments.filter((comment) => comment.id !== evt.target.getAttribute('id')),
+      scrollPosition: this.element.scrollTop
+    });
+    this.element.scroll(0, this._state.scrollPosition);
+  };
+
+  #sendCommentHandler = (evt) => {
+    evt.preventDefault();
+    console.log('dada');
+
+    const comment = {
+      id: nanoid(),
+      author: 'Ilya O\'Reilly',
+      comment: 'a film that changed my life, a true masterpiece, post-credit scene was just amazing omg.',
+      date: '2019-05-11T16:12:32.554Z',
+      emotion: 'smile'
+    };
+
+    this.updateElement({
+      comments: this._state.comments.push(comment),
+      scrollPosition: this.element.scrollTop
+    });
+    this._callback.sendComment(comment);
   };
 
   #emojiClickHandler = (evt) => {
@@ -235,11 +290,13 @@ export default class PopupView extends AbstractStatefulView {
 
   static parseFilmToState = (
     film,
+    comments,
     checkedEmoji = null,
     userComment = null,
     scrollPosition = 0
   ) => ({
     ...film,
+    comments,
     checkedEmoji,
     userComment,
     scrollPosition

@@ -51,7 +51,7 @@ export const generateFilm = () => ({
       'Morgan Freeman'
     ],
     release: {
-      date: '2019-05-11T00:00:00.000Z',
+      date: `2019-${getRandomInteger(10,12)}-11T00:00:00.000Z`,
       releaseCountry: 'Finland'
     },
     runtime: 77,
